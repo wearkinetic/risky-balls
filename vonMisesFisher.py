@@ -3,22 +3,27 @@
 
 import numpy as np
 
-def get_mle(x):
+def get_mle(x, weights=0):
     """ Computes the MLE for a Fisher-Von Mises distribution
 
     args:
     x -- array like, shape (N,p), represents samples on the there sphere
         where x[i] \in R^p is of unit magnitude
 
+    kwargs:
+    weights -- array, shape (N,) or None.  default:None
+
     output:
     mu -- a unit vector in R^n representing the spherical mean
     kappa -- a positive constant reprsenting the spread
     """
-    mu = x.sum(axis=0)
+    if type(weights)==int:
+        weights=np.ones(x.shape[0])
+    mu = np.einsum('ij,i->j',x,weights)
     mu /= np.sqrt(np.dot(mu,mu))
     p = x.shape[1]
     N = x.shape[0]
-    R_bar = np.linalg.norm(x.sum(axis=0)) / N
+    R_bar = np.linalg.norm( np.einsum('ij,i->j',x,weights) ) / weights.sum()
     #A(kappa)=R_bar
     kappa_0 = R_bar*(p-R_bar**2) / (1.0-R_bar**2)
     from scipy.special import iv
